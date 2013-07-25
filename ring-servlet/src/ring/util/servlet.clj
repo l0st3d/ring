@@ -69,28 +69,38 @@
   "Update a HttpServletResponse body with a String, ISeq, File or InputStream."
   [#^HttpServletResponse response, body]
   (cond
-    (string? body)
-      (with-open [writer (.getWriter response)]
-        (.println writer body))
-    (seq? body)
-      (with-open [writer (.getWriter response)]
-        (doseq [chunk body]
-          (.print writer (str chunk))
-          (.flush writer)))
-    (instance? InputStream body)
-    (let [#^InputStream b body]
-      (with-open [out (.getOutputStream response)]
-        (copy b out)
-        (.close b)
-        (.flush out)))
-    (instance? File body)
-    (let [#^File f body]
-      (with-open [stream (FileInputStream. f)]
-        (set-body response stream)))
-    (nil? body)
-      nil
-    :else
-      (throwf "Unrecognized body: %s" body)))
+   (string? body)
+   (with-open [writer (.getWriter response)]
+     (.println writer body))
+
+   (seq? body)
+   (with-open [writer (.getWriter response)]
+     (doseq [chunk body]
+       (.print writer (str chunk))
+       (.flush writer)))
+
+   (instance? InputStream body)
+   (let [#^InputStream b body]
+     (with-open [out (.getOutputStream response)]
+       (copy b out)
+       (.close b)
+       (.flush out)))
+   
+   (instance? File body)
+   (let [#^File f body]
+     (with-open [stream (FileInputStream. f)]
+       (set-body response stream)))
+   
+   (and (fn? body) (-> body meta ::use-sync-io))
+   (with-open [out (.getOutputStream response)]
+     (body {:output-stream out})
+     (.flush out))
+   
+   (nil? body)
+   nil
+   
+   :else
+   (throw "Unrecognized body: %s" body)))
 
 (defn update-servlet-response
   "Update the HttpServletResponse using a response map."

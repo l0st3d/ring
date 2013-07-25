@@ -81,3 +81,7 @@
   to the given content-type."
   [resp content-type]
   (header resp "Content-Type" content-type))
+
+(defmacro body-using-sync-io [[{:keys [output-stream]} :as args] & body]
+  (when (-> args count (not= 1)) (throw (IllegalArgumentException. "response processing function must take a singl argument")))
+  `(with-meta (fn ~args ~@body) {:ring.util.servlet/use-sync-io true}))
