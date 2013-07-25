@@ -1,4 +1,4 @@
-(defproject ring "0.2.5"
+(defproject ring "0.2.5-l0st3d"
   :description "A Clojure web applications library."
   :url "http://github.com/mmcgrana/ring"
   :dependencies
