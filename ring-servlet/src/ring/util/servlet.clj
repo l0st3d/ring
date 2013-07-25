@@ -97,6 +97,10 @@
       (let [^File f body]
         (with-open [stream (FileInputStream. f)]
           (set-body response stream)))
+    (and (fn? body) (-> body meta ::use-sync-io))
+      (with-open [out (.getOutputStream response)]
+        (body {:output-stream out})
+        (.flush out))
     (nil? body)
       nil
     :else

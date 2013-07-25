@@ -207,3 +207,7 @@
   [resp ^String header-name]
   (some (fn [[k v]] (if (.equalsIgnoreCase header-name k) v))
         (:headers resp)))
+
+(defmacro body-using-sync-io [[{:keys [output-stream]} :as args] & body]
+  (when (-> args count (not= 1)) (throw (IllegalArgumentException. "response processing function must take a singl argument")))
+  `(with-meta (fn ~args ~@body) {:ring.util.servlet/use-sync-io true}))
